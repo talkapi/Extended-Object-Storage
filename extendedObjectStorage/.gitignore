@@ -1,0 +1,11 @@
+# ENVS
+dev.env
+qa.env
+stage.env
+prod.env
+envs/
+.env
+
+# IDE
+.vscode
+.idea

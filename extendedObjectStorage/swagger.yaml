@@ -1,0 +1,88 @@
+openapi: 3.0.2
+info:
+  title: Rest API
+  version: "1.0.1"
+paths:
+  /v1/object:
+    get:
+      summary: Update assets status in body
+      operationId: app.controllers.object_controller.get_object
+      tags:
+        - internal
+      responses:
+        "200":
+          description: object response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/object_response'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        '5XX':
+          $ref: '#/components/responses/InternalError'
+components:
+  responses:
+    InternalError: 
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/generic_error_response'
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/generic_error_response'
+    Conflict:
+      description: resource are already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/generic_error_response'
+    Unauthorized: 
+      description: No Permissions to perform action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/generic_error_response'
+    NotFound: 
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/generic_error_response'
+  schemas:
+    object_response:
+      description: object response
+      type: object
+      properties:
+        object:
+          type: string
+    generic_message_response:
+      description: generic json response with message property
+      type: object
+      required: 
+        - message
+      properties:
+        message:
+          type: string
+    generic_error_response:
+      description: generic json error response
+      type: object
+      required: 
+        - message
+        - code
+        - status
+      properties:
+        message:
+          type: string
+        code:
+          type: integer
+          enum: [400, 401, 403, 404, 409, 500]
+        status:
+          type: string
