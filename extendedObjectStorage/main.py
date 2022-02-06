@@ -17,6 +17,33 @@ def start_service():
     else:
         connex_app.run(port=CONFIG['PORT'])
 
+class ExtendedObjectStorage:
+    def create_object(self, obj_name, obj_path):
+        pass
+
+    def get_object(self, obj):
+        pass
+
+    def delete_object(self, obj):
+        pass
+    
+    def create_directory(self, dir_name, dir_path):
+        pass
+
+    def delete_directory(self, dir):
+        pass
+
+    def list_directory(self, dir):
+        pass
+
+    def rename_directory(self, dir, new_name):
+        pass
+
+    def rename_object(self, obj, new_name):
+        pass
+
+    
+
 
 if __name__ == '__main__':
     start_service()

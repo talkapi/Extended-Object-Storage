@@ -1,5 +1,5 @@
 connexion2==2.10.0
 python-dotenv
-connexion[swagger-ui]
+connexion[swagger-ui]==2.10.0
 waitress
-mysql
+ibm-cos-sdk
