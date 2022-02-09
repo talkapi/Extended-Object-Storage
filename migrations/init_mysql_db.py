@@ -20,13 +20,14 @@ sqlObjects ='''CREATE TABLE Objects(
    id VARCHAR(1000) NOT NULL,
    directory_id CHAR(20),
    object_key VARCHAR(1000) NOT NULL,
-   PRIMARY KEY (id)
+   PRIMARY KEY (id),
+   UNIQUE KEY `unique_object` (`directory_id`,`object_key`)
 )'''
 conn.query(sqlObjects)
 
 #Creating table as per requirement
 sqlObjects ='''CREATE TABLE Directories(
-   id VARCHAR(1000) NOT NULL,
+   id VARCHAR(1000) NOT NULL AUTO_INCREMENT,
    directory VARCHAR(1000),
    PRIMARY KEY (id)
 )'''
