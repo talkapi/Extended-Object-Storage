@@ -3,5 +3,5 @@ python-dotenv
 connexion[swagger-ui]==2.10.0
 waitress
 ibm-cos-sdk
-MySQL-python
-MySQL-python-connector
+pymysql
+flask

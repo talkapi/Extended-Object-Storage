@@ -7,7 +7,7 @@ load_dotenv()
 
 def start_service():
     connex_app = connexion.App(__name__, specification_dir='./')
-    connex_app.add_api('swagger.yaml')
+    connex_app.add_api('swagger.yaml',  strict_validation=False)
     logger.info(f'Service starting to listen on port {CONFIG["PORT"]}')
 
     # get handle to Flask app

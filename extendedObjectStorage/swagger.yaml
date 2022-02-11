@@ -3,12 +3,97 @@ info:
   title: Rest API
   version: "1.0.1"
 paths:
-  /v1/object:
+  /v1/directories:
+    get:
+      summary: Update assets status in body
+      operationId: app.controllers.object_controller.list_directory
+      parameters:
+        - name: prefixPath
+          in: query
+          schema:
+            type: string
+          required: true
+      tags:
+        - Directory
+      responses:
+        "200":
+          description: object response
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        '5XX':
+          $ref: '#/components/responses/InternalError'
+    post:
+      summary: create dir
+      operationId: app.controllers.object_controller.create_directory
+      tags:
+        - Directory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: object response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/object_response'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        '5XX':
+          $ref: '#/components/responses/InternalError'
+  /v1/objects:
+    post:
+      summary: Upload blob
+      operationId: app.controllers.object_controller.create_object
+      tags:
+        - Object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+        - name: objectPath
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: object response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/object_response'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        '5XX':
+          $ref: '#/components/responses/InternalError'
     get:
       summary: Update assets status in body
       operationId: app.controllers.object_controller.get_object
       tags:
-        - internal
+        - Object
       responses:
         "200":
           description: object response
@@ -61,8 +146,10 @@ components:
       description: object response
       type: object
       properties:
-        object:
-          type: string
+        status:
+          type: integer
+        success:
+          type: boolean
     generic_message_response:
       description: generic json response with message property
       type: object
