@@ -29,4 +29,17 @@ with open('testfile.txt', 'r') as f:
     data = f.read()
 
 bucket_file_name = str(uuid.uuid1())
-create_text_file(os.getenv('BUCKET'), bucket_file_name, data)
+
+# create_text_file(os.getenv('BUCKET'), bucket_file_name, data)
+
+def get_item(bucket_name, item_name):
+    print("Retrieving item from bucket: {0}, key: {1}".format(bucket_name, item_name))
+    try:
+        file = cos.Object(bucket_name, item_name).get()
+        print("File Contents: {0}".format(file["Body"].read()))
+    except ClientError as be:
+        print("CLIENT ERROR: {0}\n".format(be))
+    except Exception as e:
+        print("Unable to retrieve file contents: {0}".format(e))
+
+get_item(os.getenv('BUCKET'),'bede3826-8dba-11ec-a36a-acde48001122.txt')

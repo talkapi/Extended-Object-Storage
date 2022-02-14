@@ -90,10 +90,73 @@ paths:
         '5XX':
           $ref: '#/components/responses/InternalError'
     get:
-      summary: Update assets status in body
+      summary: Get blob
       operationId: app.controllers.object_controller.get_object
       tags:
         - Object
+      parameters:
+        - name: objectPath
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: object response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/object_response'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        '5XX':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      summary: Delete blob
+      operationId: app.controllers.object_controller.delete_object
+      tags:
+        - Object
+      parameters:
+        - name: objectPath
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        "204":
+          description: object response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/object_response'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        '5XX':
+          $ref: '#/components/responses/InternalError'
+    put:
+      summary: Rename blob
+      operationId: app.controllers.object_controller.rename_object
+      tags:
+        - Object
+      parameters:
+        - name: objectPath
+          in: query
+          schema:
+            type: string
+          required: true
+        - name: newName
+          in: query
+          schema:
+            type: string
+          required: true
       responses:
         "200":
           description: object response

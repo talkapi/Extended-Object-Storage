@@ -69,16 +69,69 @@ class ExtendedObjectStorage:
             logger.error('Error uploading file {bucket_file_name} to bucket {bucket}. Error: {be}.')
             return {'success': False, 'reason': 'Internal error', 'status': 500}
         except Exception as e:
-            logger.error('Error uploading file {bucket_file_name} to bucket {bucket}. Error: {be}.')
+            logger.error('Error uploading file {bucket_file_name} to bucket {bucket}. Error: {e}.')
             return {'success': False, 'reason': 'Internal error', 'status': 500}
 
         return {'success': True, 'status': 200}
 
-    def get_object(self, obj):
-        pass
+    def get_object(self, obj_name, obj_path):
+        # Get object from DB
+        cursor = conn.cursor()
+        sql = '''SELECT Objects.id from Objects, Directories where Directories.id = Objects.directory_id and Directories.directory = %s and Objects.object_key = %s'''
+        obj = (obj_path, obj_name, )
+        cursor.execute(sql, obj)
+        result = cursor.fetchone()
+        if result:
+            obj_id = result[0]
+        else:
+            logger.warning(f'Object {obj_path}{obj_name} not found')
+            return {'success': False, 'reason': 'Object not found', 'status': 404}
 
-    def delete_object(self, obj):
-        pass
+        # Get object from s3 bucket
+        try:
+            file = cos.Object(bucket, obj_id).get()
+            file_content = file["Body"].read()
+        except ClientError as be:
+            logger.error(f'Error getting file {obj_id} from bucket {bucket}. Error: {be}.')
+            return {'success': False, 'reason': 'Internal error', 'status': 500}
+        except Exception as e:
+            logger.error(f'Error getting file {obj_id} to bucket {bucket}. Error: {e}.')
+            return {'success': False, 'reason': 'Internal error', 'status': 500}
+        
+        return {'success': True, 'object': file_content.decode(), 'contentType': file["ContentType"], 'status': 200}
+
+    def delete_object(self, obj_name, obj_path):
+         # Get object from DB
+        cursor = conn.cursor()
+        sql = '''SELECT Objects.id from Objects, Directories where Directories.id = Objects.directory_id and Directories.directory = %s and Objects.object_key = %s'''
+        obj = (obj_path, obj_name, )
+        cursor.execute(sql, obj)
+        result = cursor.fetchone()
+        if result:
+            obj_id = result[0]
+        else:
+            logger.warning(f'Object {obj_path}{obj_name} not found')
+            return {'success': False, 'reason': 'Object not found', 'status': 404}
+
+        # Delete object from s3
+        try:
+            cos.Object(bucket, obj_id).delete()
+        except ClientError as be:
+            logger.error(f'Error deleting file {obj_id} from bucket {bucket}. Error: {be}.')
+            return {'success': False, 'reason': 'Internal error', 'status': 500}
+        except Exception as e:
+            logger.error(f'Error deleting file {obj_id} from bucket {bucket}. Error: {e}.')
+            return {'success': False, 'reason': 'Internal error', 'status': 500}
+
+        # remove object from DB
+        cursor = conn.cursor()
+        sql = '''DELETE from Objects where id = %s'''
+        obj = (obj_id, )
+        cursor.execute(sql, obj)
+        conn.commit()
+
+        return {'success': True, 'status': 204}
+
     
     def create_directory(self, dir_path):
         # Get directory ID from DB
@@ -136,5 +189,26 @@ class ExtendedObjectStorage:
     def rename_directory(self, dir_path, new_dir_path):
         pass
 
-    def rename_object(self, obj, new_name):
-        pass
+    def rename_object(self, obj_name, obj_path, new_name):
+        if obj_name == new_name:
+            return {'success': False, 'reason': 'Bad request', 'status': 400}
+
+        # Get object from DB
+        cursor = conn.cursor()
+        sql = '''SELECT Objects.id from Objects, Directories where Directories.id = Objects.directory_id and Directories.directory = %s and Objects.object_key = %s'''
+        obj = (obj_path, obj_name, )
+        cursor.execute(sql, obj)
+        result = cursor.fetchone()
+        if result:
+            obj_id = result[0]
+        else:
+            logger.warning(f'Object {obj_path}{obj_name} not found')
+            return {'success': False, 'reason': 'Object not found', 'status': 404}
+
+        # Update object on DB
+        sql = '''update Objects set object_key = %s where id = %s'''
+        obj = (new_name ,obj_id, )
+        cursor.execute(sql, obj)
+        conn.commit()
+
+        return {'success': True, 'status': 200}
