@@ -5,6 +5,7 @@ import uuid
 import ibm_boto3
 from ibm_botocore.client import Config, ClientError
 import pymysql as MySQLdb
+import re
 
 cos = ibm_boto3.resource('s3',
     ibm_api_key_id=CONFIG['cos']['apiKey'],
@@ -26,8 +27,15 @@ conn = MySQLdb.Connection(
 class ExtendedObjectStorage:
     def create_object(self, obj_name, obj_path, file):
         # Generate bucket filename
-        bucket_file_name = str(uuid.uuid1())
-
+        pattern = '\.([a-zA-Z]{3})$'
+        match = re.search(pattern, obj_name)
+        ext = match.group(1)
+        print(ext)
+        if ext:
+            bucket_file_name = f'{str(uuid.uuid1())}.{ext}'
+        else:
+            return {'success': False, 'reason': 'Ilegal file', 'status': 400}
+        
         # Get directory ID from DB
         cursor = conn.cursor()
         sql = '''SELECT id FROM Directories WHERE directory = %s'''

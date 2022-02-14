@@ -17,7 +17,8 @@ def create_object():
     object_path = args.get("objectPath")
     obj_name = os.path.basename(object_path)
     obj_path = os.path.dirname(object_path)
-    res = extendedStorage.create_object(obj_name, obj_path, request.get_data())
+    file = request.files['file']
+    res = extendedStorage.create_object(obj_name, obj_path, file)
     return res, res['status']
 
 
