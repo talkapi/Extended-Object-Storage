@@ -120,6 +120,10 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
       parameters:
         - name: objectPath
           in: query

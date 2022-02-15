@@ -1,40 +1,15 @@
 from app.logger import logger
-from app.config import CONFIG
-import os
+from main import cos, cos_client, bucket, conn
 import uuid
-import ibm_boto3
-from ibm_botocore.client import Config, ClientError
+from ibm_botocore.client import ClientError
 import pymysql as MySQLdb
 import re
-
-cos = ibm_boto3.resource('s3',
-    ibm_api_key_id=CONFIG['cos']['apiKey'],
-    ibm_service_instance_id=CONFIG['cos']['instanceCRN'],
-    config=Config(signature_version="oauth"),
-    endpoint_url=CONFIG['cos']['endpoint']
-)
-cos_client = ibm_boto3.client('s3',
-    ibm_api_key_id=CONFIG['cos']['apiKey'],
-    ibm_service_instance_id=CONFIG['cos']['instanceCRN'],
-    config=Config(signature_version="oauth"),
-    endpoint_url=CONFIG['cos']['endpoint']
-)
-
-bucket = os.getenv('BUCKET')
-
-conn = MySQLdb.Connection(
-    host=CONFIG['sql']['host'],
-    user=CONFIG['sql']['user'],
-    passwd=CONFIG['sql']['password'],
-    port=CONFIG['sql']['port'],
-    db=CONFIG['sql']['db']
-)
 
 
 class ExtendedObjectStorage:
     def create_object(self, obj_name, obj_path, file):
         # Generate bucket filename
-        pattern = '\.([a-zA-Z]{3})$'
+        pattern = '\.([a-zA-Z]{4})$'
         match = re.search(pattern, obj_name)
         ext = match.group(1)
         print(ext)
@@ -61,7 +36,7 @@ class ExtendedObjectStorage:
 
         try:
             cursor.execute(sql, val)
-            conn.commit() #TODO: This commit should be done only after uploading the file into the storage.
+            conn.commit()
         except MySQLdb.Error as err:
             logger.error(f'Error inserting file {obj_name} record to database. Error: {err}.')
             return {'success': False, 'reason': 'Object already exists', 'status': 409}
@@ -139,7 +114,6 @@ class ExtendedObjectStorage:
 
         return {'success': True, 'status': 204}
 
-    
     def create_directory(self, dir_path):
         # Get directory ID from DB
         try:
@@ -220,7 +194,7 @@ class ExtendedObjectStorage:
 
 
         return {'success': True, 'status': 200}
-            
+
 
     def list_directory(self, dir_path):
         # Get directory ID from DB

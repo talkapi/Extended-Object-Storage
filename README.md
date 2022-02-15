@@ -1,5 +1,9 @@
-# extended-object-storage
-Project in Big Data course
+# Introduction
+Please install all packages in requirements.txt file.
 
-# Use migrations folder to init the DB after starting it using `docker-compose up`
-# You can fetch demo response using route: `http://localhost:8094/v1/object`
+## Run in Docker
+
+```sh
+docker build -t imagename .
+docker run --env-file=.env -it --rm -p 80:8094 --name continerName imagename
+```

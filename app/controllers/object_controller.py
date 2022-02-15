@@ -1,5 +1,4 @@
-from app.services.object_service import get_object_service
-from app.services.extendedObjectStorage_service import ExtendedObjectStorage
+from app.services.extended_object_storage_service import ExtendedObjectStorage
 import os.path
 from flask import request
 
@@ -14,6 +13,7 @@ def get_object():
     res = extendedStorage.get_object(obj_name, obj_path)
     return res, res['status']
 
+
 def create_object():
     args = request.args
     object_path = args.get("objectPath")
@@ -23,6 +23,7 @@ def create_object():
     res = extendedStorage.create_object(obj_name, obj_path, file)
     return res, res['status']
 
+
 def delete_object():
     args = request.args
     object_path = args.get("objectPath")
@@ -31,6 +32,7 @@ def delete_object():
     res = extendedStorage.delete_object(obj_name, obj_path)
     return res, res['status']
 
+
 def rename_object():
     object_path = request.get_json()['objectPath']
     new_name = request.get_json()['newObjectName']
@@ -38,6 +40,7 @@ def rename_object():
     obj_path = os.path.dirname(object_path)
     res = extendedStorage.rename_object(obj_name, obj_path, new_name)
     return res, res['status']
+
 
 def create_directory():
     res = extendedStorage.create_directory(request.get_json()['path'])
@@ -50,11 +53,13 @@ def list_directory():
     res = extendedStorage.list_directory(prefix_path)
     return res, res['status']
 
+
 def rename_directory():
     prefixPath = request.get_json()['prefixPath']
     new_dir_path = request.get_json()['newDirPath']
     res = extendedStorage.rename_directory(prefixPath, new_dir_path)
     return res, res['status']
+
 
 def delete_directory():
     args = request.args
