@@ -1,7 +1,6 @@
 import connexion
 from connexion.resolver import RestyResolver
 
-from app.config import CONFIG
 from app.logger import logger
 from dotenv import load_dotenv
 

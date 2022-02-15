@@ -7,7 +7,8 @@ import re
 
 
 class ExtendedObjectStorage:
-    def create_object(self, obj_name, obj_path, file):
+    @staticmethod
+    def create_object(obj_name, obj_path, file):
         # Generate bucket filename
         pattern = '\.([a-zA-Z]{4})$'
         match = re.search(pattern, obj_name)
@@ -56,7 +57,8 @@ class ExtendedObjectStorage:
 
         return {'success': True, 'status': 200}
 
-    def get_object(self, obj_name, obj_path):
+    @staticmethod
+    def get_object(obj_name, obj_path):
         # Get object from DB
         cursor = conn.cursor()
         sql = '''SELECT Objects.id from Objects, Directories where Directories.id = Objects.directory_id and Directories.directory = %s and Objects.object_key = %s'''
@@ -82,7 +84,8 @@ class ExtendedObjectStorage:
         
         return {'success': True, 'object': file_content.decode(), 'contentType': file["ContentType"], 'status': 200}
 
-    def delete_object(self, obj_name, obj_path):
+    @staticmethod
+    def delete_object(obj_name, obj_path):
          # Get object from DB
         cursor = conn.cursor()
         sql = '''SELECT Objects.id from Objects, Directories where Directories.id = Objects.directory_id and Directories.directory = %s and Objects.object_key = %s'''
@@ -114,7 +117,8 @@ class ExtendedObjectStorage:
 
         return {'success': True, 'status': 204}
 
-    def create_directory(self, dir_path):
+    @staticmethod
+    def create_directory(dir_path):
         # Get directory ID from DB
         try:
             cursor = conn.cursor()
@@ -136,7 +140,8 @@ class ExtendedObjectStorage:
             logger.error(f'Error creating dir record into the database. Error: {err}.')
             return {'success': False, 'reason': 'Internal error', 'status': 500}
 
-    def delete_directory(self, dir_path):
+    @staticmethod
+    def delete_directory(dir_path):
         try:
             # Get all directories and sub directories
             cursor = conn.cursor()
@@ -195,8 +200,8 @@ class ExtendedObjectStorage:
 
         return {'success': True, 'status': 200}
 
-
-    def list_directory(self, dir_path):
+    @staticmethod
+    def list_directory(dir_path):
         # Get directory ID from DB
         try:
             cursor = conn.cursor()
@@ -224,7 +229,8 @@ class ExtendedObjectStorage:
             logger.error(f'Error: {err}.')
             return {'success': False, 'reason': 'Internal error', 'status': 500}
 
-    def rename_directory(self, dir_path, new_dir_path):
+    @staticmethod
+    def rename_directory(dir_path, new_dir_path):
         if dir_path == new_dir_path:
             return {'success': False, 'reason': 'Bad request', 'status': 400}
         # Get object from DB
@@ -247,8 +253,8 @@ class ExtendedObjectStorage:
 
         return {'success': True, 'status': 200}
 
-
-    def rename_object(self, obj_name, obj_path, new_name):
+    @staticmethod
+    def rename_object(obj_name, obj_path, new_name):
         if obj_name == new_name:
             return {'success': False, 'reason': 'Bad request', 'status': 400}
 
