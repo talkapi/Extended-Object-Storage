@@ -32,9 +32,8 @@ def delete_object():
     return res, res['status']
 
 def rename_object():
-    args = request.args
-    object_path = args.get("objectPath")
-    new_name = args.get("newName")
+    object_path = request.get_json()['objectPath']
+    new_name = request.get_json()['newObjectName']
     obj_name = os.path.basename(object_path)
     obj_path = os.path.dirname(object_path)
     res = extendedStorage.rename_object(obj_name, obj_path, new_name)
@@ -51,3 +50,14 @@ def list_directory():
     res = extendedStorage.list_directory(prefix_path)
     return res, res['status']
 
+def rename_directory():
+    prefixPath = request.get_json()['prefixPath']
+    new_dir_path = request.get_json()['newDirPath']
+    res = extendedStorage.rename_directory(prefixPath, new_dir_path)
+    return res, res['status']
+
+def delete_directory():
+    args = request.args
+    prefixPath = args.get("prefixPath")
+    res = extendedStorage.delete_directory(prefixPath)
+    return res, res['status']

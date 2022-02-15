@@ -5,7 +5,7 @@ info:
 paths:
   /v1/directories:
     get:
-      summary: Update assets status in body
+      summary: List directory
       operationId: app.controllers.object_controller.list_directory
       parameters:
         - name: prefixPath
@@ -31,7 +31,7 @@ paths:
         '5XX':
           $ref: '#/components/responses/InternalError'
     post:
-      summary: create dir
+      summary: create directory
       operationId: app.controllers.object_controller.create_directory
       tags:
         - Directory
@@ -43,6 +43,58 @@ paths:
               type: object
       responses:
         "200":
+          description: object response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/object_response'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        '5XX':
+          $ref: '#/components/responses/InternalError'
+    put:
+      summary: Rename directory
+      operationId: app.controllers.object_controller.rename_directory
+      tags:
+        - Directory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: object response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/object_response'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        '5XX':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      summary: Delete directory
+      operationId: app.controllers.object_controller.delete_directory
+      tags:
+        - Directory
+      parameters:
+        - name: prefixPath
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        "204":
           description: object response
           content:
             application/json:
@@ -146,17 +198,12 @@ paths:
       operationId: app.controllers.object_controller.rename_object
       tags:
         - Object
-      parameters:
-        - name: objectPath
-          in: query
-          schema:
-            type: string
-          required: true
-        - name: newName
-          in: query
-          schema:
-            type: string
-          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         "200":
           description: object response

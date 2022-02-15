@@ -13,6 +13,13 @@ cos = ibm_boto3.resource('s3',
     config=Config(signature_version="oauth"),
     endpoint_url=CONFIG['cos']['endpoint']
 )
+cos_client = ibm_boto3.client('s3',
+    ibm_api_key_id=CONFIG['cos']['apiKey'],
+    ibm_service_instance_id=CONFIG['cos']['instanceCRN'],
+    config=Config(signature_version="oauth"),
+    endpoint_url=CONFIG['cos']['endpoint']
+)
+
 bucket = os.getenv('BUCKET')
 
 conn = MySQLdb.Connection(
@@ -66,10 +73,10 @@ class ExtendedObjectStorage:
             )
             logger.info(f'File {bucket_file_name} has been successfully uploaded to s3 bucket {bucket})')
         except ClientError as be:
-            logger.error('Error uploading file {bucket_file_name} to bucket {bucket}. Error: {be}.')
+            logger.error(f'Error uploading file {bucket_file_name} to bucket {bucket}. Error: {be}.')
             return {'success': False, 'reason': 'Internal error', 'status': 500}
         except Exception as e:
-            logger.error('Error uploading file {bucket_file_name} to bucket {bucket}. Error: {e}.')
+            logger.error(f'Error uploading file {bucket_file_name} to bucket {bucket}. Error: {e}.')
             return {'success': False, 'reason': 'Internal error', 'status': 500}
 
         return {'success': True, 'status': 200}
@@ -156,7 +163,64 @@ class ExtendedObjectStorage:
             return {'success': False, 'reason': 'Internal error', 'status': 500}
 
     def delete_directory(self, dir_path):
-        pass
+        try:
+            # Get all directories and sub directories
+            cursor = conn.cursor()
+            sql = "SELECT id FROM Directories WHERE directory LIKE %s"
+            dir = (dir_path+'%')
+            cursor.execute(sql, dir)
+            results = cursor.fetchall()
+            if results is None:
+                return {'success': False, 'reason': 'No elements', 'status': 404}
+
+            # Get all the objects that are in the directory
+            dir_ids = [item for r in results for item in r]
+            sql = f"SELECT id FROM Objects WHERE directory_id in {tuple(dir_ids)}"
+            cursor.execute(sql)
+            results = cursor.fetchall()
+
+        except Exception as err:
+            logger.error(f'Error: {err}.')
+            return {'success': False, 'reason': 'Internal error', 'status': 500}
+
+        # Delete files from bucket
+        try:
+            obj_ids = [item for r in results for item in r]
+            obj_list = []
+            for id in obj_ids:
+                obj_list.append({"Key": id })
+            delete_request = {
+                "Objects": obj_list
+            }
+
+            cos_client.delete_objects(
+                Bucket=bucket,
+                Delete=delete_request
+            )
+
+            logger.info(f'Directory items has been successfully deleted from s3 bucket {bucket})')
+        except ClientError as be:
+            logger.error(f'Error deleting directory files from s3 bucket {bucket}. Error: {be}.')
+            return {'success': False, 'reason': 'Internal error', 'status': 500}
+        except Exception as e:
+            logger.error(f'Error deleting directory files from s3 bucket {bucket}. Error: {e}.')
+            return {'success': False, 'reason': 'Internal error', 'status': 500}
+
+        # Remove all objects and folders from DB
+        try:
+            sql = f"DELETE FROM Directories WHERE id in {tuple(dir_ids)}"
+            cursor.execute(sql)
+            sql = f"DELETE FROM Objects WHERE id in {tuple(obj_ids)}"
+            cursor.execute(sql)
+            conn.commit()
+
+        except Exception as err:
+            logger.error(f'Error: {err}.')
+            return {'success': False, 'reason': 'Internal error', 'status': 500}
+
+
+        return {'success': True, 'status': 200}
+            
 
     def list_directory(self, dir_path):
         # Get directory ID from DB
@@ -187,7 +251,28 @@ class ExtendedObjectStorage:
             return {'success': False, 'reason': 'Internal error', 'status': 500}
 
     def rename_directory(self, dir_path, new_dir_path):
-        pass
+        if dir_path == new_dir_path:
+            return {'success': False, 'reason': 'Bad request', 'status': 400}
+        # Get object from DB
+        cursor = conn.cursor()
+        sql = '''SELECT id from Directories where directory = %s'''
+        obj = (dir_path, )
+        cursor.execute(sql, obj)
+        result = cursor.fetchone()
+        if result:
+            dir_id = result[0]
+        else:
+            logger.warning(f'Directory {dir_path} not found')
+            return {'success': False, 'reason': 'Directory not found', 'status': 404}
+        
+        # Update object on DB
+        sql = '''update Directories set directory = %s where id = %s'''
+        obj = (new_dir_path ,dir_id, )
+        cursor.execute(sql, obj)
+        conn.commit()
+
+        return {'success': True, 'status': 200}
+
 
     def rename_object(self, obj_name, obj_path, new_name):
         if obj_name == new_name:
