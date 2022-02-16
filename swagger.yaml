@@ -1,7 +1,11 @@
 openapi: 3.0.2
 info:
-  title: Rest API
+  title: Extended Object Storage Rest API
   version: "1.0.1"
+  description: "Extended object storage - final project for Big Data Platform course - Reichman University 2022"
+externalDocs:
+  description: "Project's Github"
+  url: "https://github.com/talkapi/Extended-Object-Storage"
 paths:
   /v1/directories:
     get:
@@ -9,6 +13,8 @@ paths:
       operationId: app.controllers.object_controller.list_directory
       parameters:
         - name: prefixPath
+          description: 'Directory path'
+          example: "/dir/dir1"
           in: query
           schema:
             type: string
@@ -17,11 +23,22 @@ paths:
         - Directory
       responses:
         "200":
-          description: object response
+          description: List directory response
           content:
             application/json:
               schema:
+                description: List directory response
                 type: object
+                properties:
+                  response:
+                    type: array
+                    items:
+                      type: string
+                  status:
+                      type: integer
+                      enum: [200]
+                  success:
+                      type: boolean
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -41,13 +58,18 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                path:
+                  type: string
+                  description: 'Directory path'
+                  example: '/dir'
       responses:
         "200":
-          description: object response
+          description: Generic response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/object_response'
+                $ref: '#/components/schemas/generic_response'
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -67,13 +89,20 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                dirPath:
+                  type: string
+                  description: 'Directory path'
+                newDirPath:
+                  type: string
+                  description: 'Directory new path'
       responses:
         "200":
           description: object response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/object_response'
+                $ref: '#/components/schemas/generic_response'
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -90,6 +119,8 @@ paths:
       parameters:
         - name: prefixPath
           in: query
+          description: 'Directory path'
+          example: "/dir/dir1"
           schema:
             type: string
           required: true
@@ -99,7 +130,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/object_response'
+                $ref: '#/components/schemas/generic_response'
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -110,7 +141,7 @@ paths:
           $ref: '#/components/responses/InternalError'
   /v1/objects:
     post:
-      summary: Upload blob
+      summary: Create object
       operationId: app.controllers.object_controller.create_object
       tags:
         - Object
@@ -127,16 +158,18 @@ paths:
       parameters:
         - name: objectPath
           in: query
+          description: "Full path to object"
+          example: "/dir/file.csv"
           schema:
             type: string
           required: true
       responses:
         "200":
-          description: object response
+          description: Generic response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/object_response'
+                $ref: '#/components/schemas/generic_response'
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -146,13 +179,15 @@ paths:
         '5XX':
           $ref: '#/components/responses/InternalError'
     get:
-      summary: Get blob
+      summary: Get Object
       operationId: app.controllers.object_controller.get_object
       tags:
         - Object
       parameters:
         - name: objectPath
           in: query
+          description: "Full path to object"
+          example: "/dir/file.csv"
           schema:
             type: string
           required: true
@@ -162,7 +197,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/object_response'
+                  type: object
+                  properties:
+                    contentType:
+                      type: string
+                    object:
+                      type: string
+                    status:
+                      type: integer
+                      enum: [200]
+                    success:
+                      type: boolean
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -172,23 +217,20 @@ paths:
         '5XX':
           $ref: '#/components/responses/InternalError'
     delete:
-      summary: Delete blob
+      summary: Delete Object
       operationId: app.controllers.object_controller.delete_object
       tags:
         - Object
       parameters:
         - name: objectPath
           in: query
+          example: "/dir/file.csv"
           schema:
             type: string
           required: true
       responses:
         "204":
-          description: object response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/object_response'
+          description: No content
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -198,7 +240,7 @@ paths:
         '5XX':
           $ref: '#/components/responses/InternalError'
     put:
-      summary: Rename blob
+      summary: Rename Object
       operationId: app.controllers.object_controller.rename_object
       tags:
         - Object
@@ -208,13 +250,22 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                objectPath:
+                  type: string
+                  description: 'Full path to object'
+                  example: "/dir/file.csv"
+                newObjectName:
+                  type: string
+                  description: 'New object name'
+                  example: "file1.csv"
       responses:
         "200":
-          description: object response
+          description: Generic response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/object_response'
+                $ref: '#/components/schemas/generic_response'
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -256,34 +307,41 @@ components:
           schema:
             $ref: '#/components/schemas/generic_error_response'
   schemas:
-    object_response:
+    generic_response:
       description: object response
       type: object
       properties:
         status:
           type: integer
+          enum: [200]
         success:
           type: boolean
-    generic_message_response:
-      description: generic json response with message property
+    object_response:
+      description: object response
       type: object
-      required: 
-        - message
       properties:
-        message:
+        contentType:
           type: string
+        object:
+          type: string
+        status:
+          type: integer
+          enum: [200]
+        success:
+          type: boolean
     generic_error_response:
       description: generic json error response
       type: object
       required: 
-        - message
-        - code
+        - reason
         - status
+        - success
       properties:
-        message:
+        reason:
           type: string
-        code:
+        status:
           type: integer
           enum: [400, 401, 403, 404, 409, 500]
-        status:
-          type: string
+        success:
+          type: boolean
+          example: false

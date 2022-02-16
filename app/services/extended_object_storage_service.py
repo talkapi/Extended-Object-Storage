@@ -10,26 +10,32 @@ class ExtendedObjectStorage:
     @staticmethod
     def create_object(obj_name, obj_path, file):
         # Generate bucket filename
-        pattern = '\.([a-zA-Z]{4})$'
-        match = re.search(pattern, obj_name)
-        ext = match.group(1)
-        print(ext)
-        if ext:
-            bucket_file_name = f'{str(uuid.uuid1())}.{ext}'
-        else:
-            return {'success': False, 'reason': 'Ilegal file', 'status': 400}
-        
-        # Get directory ID from DB
-        cursor = conn.cursor()
-        sql = '''SELECT id FROM Directories WHERE directory = %s'''
-        dir = (obj_path, )
-        cursor.execute(sql, dir)
-        result = cursor.fetchone()
-        if result:
-            dir_id = result[0]
-        else:
-            logger.warning(f'Path {obj_path} not found')
-            return {'success': False, 'reason': 'Path not found', 'status': 404}
+        try: 
+            pattern = '\.([a-zA-Z]{2,4})$'
+            match = re.search(pattern, obj_name)
+            logger.info(match)
+            ext = match.group(1)
+            print(ext)
+            if ext:
+                bucket_file_name = f'{str(uuid.uuid1())}.{ext}'
+            else:
+                return {'success': False, 'reason': 'Ilegal file', 'status': 400}
+            
+            # Get directory ID from DB
+            cursor = conn.cursor()
+            sql = '''SELECT id FROM Directories WHERE directory = %s'''
+            dir = (obj_path, )
+            cursor.execute(sql, dir)
+            result = cursor.fetchone()
+            if result:
+                dir_id = result[0]
+            else:
+                logger.warning(f'Path {obj_path} not found')
+                return {'success': False, 'reason': 'Path not found', 'status': 404}
+
+        except Exception as e:
+            logger.error(f'Error: {e}. Object name: {obj_name}, Path: {obj_path}')
+            return {'success': False, 'reason': 'Internal error', 'status': 500}
 
         # Insert to DB
         sql = '''INSERT INTO Objects (id, directory_id, object_key) VALUES (%s, %s, %s)'''

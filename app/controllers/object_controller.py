@@ -53,9 +53,9 @@ def list_directory():
 
 
 def rename_directory():
-    prefixPath = request.get_json()['prefixPath']
+    dir_path = request.get_json()['dirPath']
     new_dir_path = request.get_json()['newDirPath']
-    res = ExtendedObjectStorage.rename_directory(prefixPath, new_dir_path)
+    res = ExtendedObjectStorage.rename_directory(dir_path, new_dir_path)
     return res, res['status']
 
 
